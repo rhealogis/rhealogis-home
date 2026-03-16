@@ -38,6 +38,7 @@ export default function App() {
   const [newNotice, setNewNotice] = useState({ title: '', content: '' });
   const [adminPassword, setAdminPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   
   const [selectedNoticeId, setSelectedNoticeId] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -90,12 +91,26 @@ export default function App() {
   }, []);
 
   const handleGoogleLogin = async () => {
+    setIsLoggingIn(true);
+    setLoginError('');
     try {
-      await signInWithPopup(auth, googleProvider);
-      setShowLoginModal(false);
-    } catch (error) {
+      const result = await signInWithPopup(auth, googleProvider);
+      if (result.user.email !== 'parkyj242@gmail.com') {
+        setLoginError('지정된 관리자 이메일(parkyj242@gmail.com)이 아닙니다.');
+      } else {
+        setShowLoginModal(false);
+      }
+    } catch (error: any) {
       console.error('Login error:', error);
-      setLoginError('로그인 중 오류가 발생했습니다.');
+      if (error.code === 'auth/popup-blocked') {
+        setLoginError('브라우저의 팝업 차단이 설정되어 있습니다. 팝업을 허용해 주세요.');
+      } else if (error.code === 'auth/unauthorized-domain') {
+        setLoginError('Firebase 설정에서 현재 도메인이 승인되지 않았습니다. (Firebase 콘솔 > Authentication > Settings > Authorized domains 확인)');
+      } else {
+        setLoginError('로그인 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
+      }
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -563,34 +578,53 @@ export default function App() {
                 <p className="text-sm text-gray-400 mb-4">관리자 권한을 위해 Google 로그인이 필요합니다.</p>
                 <button 
                   onClick={handleGoogleLogin}
-                  className="w-full flex items-center justify-center gap-3 bg-white text-black font-medium py-3 rounded-lg hover:bg-gray-200 transition-colors"
+                  disabled={isLoggingIn}
+                  className={`w-full flex items-center justify-center gap-3 bg-white text-black font-medium py-3 rounded-lg hover:bg-gray-200 transition-colors ${isLoggingIn ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                  Google로 로그인
+                  {isLoggingIn ? '로그인 중...' : 'Google로 로그인'}
                 </button>
+                {loginError && (
+                  <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <p className="text-red-500 text-xs leading-relaxed">{loginError}</p>
+                  </div>
+                )}
               </div>
             ) : (
               <>
-                <div className="mb-4 p-3 bg-white/5 rounded-lg flex items-center gap-3">
-                  <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full" />
-                  <div className="overflow-hidden">
-                    <p className="text-sm font-medium truncate">{user.displayName}</p>
-                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                <div className="mb-4 p-3 bg-white/5 rounded-lg flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full" />
+                    <div className="overflow-hidden">
+                      <p className="text-sm font-medium truncate">{user.displayName}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
                   </div>
+                  <button onClick={() => auth.signOut()} className="text-xs text-gray-400 hover:text-white underline shrink-0">다른 계정</button>
                 </div>
-                <div className="mb-6">
-                  <label className="block text-sm text-gray-400 mb-2">관리자 비밀번호</label>
-                  <input 
-                    type="password" 
-                    value={adminPassword} 
-                    onChange={e => setAdminPassword(e.target.value)} 
-                    onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                    className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#8a2be2] transition-colors" 
-                    placeholder="비밀번호를 입력하세요" 
-                    autoFocus
-                  />
-                  {loginError && <p className="text-red-500 text-sm mt-2">{loginError}</p>}
-                </div>
+                
+                {user.email !== 'parkyj242@gmail.com' ? (
+                  <div className="mb-6 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                    <p className="text-yellow-500 text-xs leading-relaxed">
+                      현재 계정은 관리자 권한이 없습니다. <br/>
+                      <strong>parkyj242@gmail.com</strong> 계정으로 로그인해 주세요.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mb-6">
+                    <label className="block text-sm text-gray-400 mb-2">관리자 비밀번호</label>
+                    <input 
+                      type="password" 
+                      value={adminPassword} 
+                      onChange={e => setAdminPassword(e.target.value)} 
+                      onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                      className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#8a2be2] transition-colors" 
+                      placeholder="비밀번호를 입력하세요" 
+                      autoFocus
+                    />
+                    {loginError && <p className="text-red-500 text-sm mt-2">{loginError}</p>}
+                  </div>
+                )}
               </>
             )}
             <div className="flex justify-end gap-3">
