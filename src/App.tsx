@@ -13,8 +13,30 @@ import {
   orderBy, 
   serverTimestamp,
   setDoc,
-  getDoc
+  getDoc,
+  getDocFromServer
 } from 'firebase/firestore';
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId: string | undefined;
+    email: string | null | undefined;
+    emailVerified: boolean | undefined;
+    isAnonymous: boolean | undefined;
+  }
+}
 
 const LogoSVG = ({ className = "w-10 h-10" }) => (
   <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -40,8 +62,8 @@ export default function App() {
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   
-  const [selectedNoticeId, setSelectedNoticeId] = useState<number | null>(null);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [selectedNoticeId, setSelectedNoticeId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [actualAdminPassword, setActualAdminPassword] = useState('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
@@ -49,6 +71,22 @@ export default function App() {
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleFirestoreError = (error: any, operationType: OperationType, path: string | null) => {
+    const errInfo: FirestoreErrorInfo = {
+      error: error instanceof Error ? error.message : String(error),
+      authInfo: {
+        userId: auth.currentUser?.uid,
+        email: auth.currentUser?.email,
+        emailVerified: auth.currentUser?.emailVerified,
+        isAnonymous: auth.currentUser?.isAnonymous,
+      },
+      operationType,
+      path
+    };
+    console.error('Firestore Error Details:', JSON.stringify(errInfo, null, 2));
+    return errInfo;
+  };
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -75,13 +113,20 @@ export default function App() {
     fetchSettings();
 
     // Real-time notices
-    const q = query(collection(db, 'notices'), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, 'notices'));
     const unsubscribeNotices = onSnapshot(q, (snapshot) => {
       const noticesData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }));
+      })).sort((a: any, b: any) => {
+        // Sort by createdAt if available, otherwise by date
+        const timeA = a.createdAt?.toMillis?.() || new Date(a.date).getTime() || 0;
+        const timeB = b.createdAt?.toMillis?.() || new Date(b.date).getTime() || 0;
+        return timeB - timeA;
+      });
       setNotices(noticesData);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'notices');
     });
 
     return () => {
@@ -170,29 +215,45 @@ export default function App() {
     
     try {
       if (editingId !== null) {
-        await updateDoc(doc(db, 'notices', editingId.toString()), {
-          title: newNotice.title,
-          content: newNotice.content
-        });
+        const path = `notices/${editingId}`;
+        try {
+          await updateDoc(doc(db, 'notices', editingId), {
+            title: newNotice.title,
+            content: newNotice.content
+          });
+        } catch (error) {
+          const err = handleFirestoreError(error, OperationType.UPDATE, path);
+          throw new Error(err.error);
+        }
         setEditingId(null);
       } else {
         const today = new Date();
         const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
         
-        await addDoc(collection(db, 'notices'), {
-          title: newNotice.title,
-          content: newNotice.content,
-          author: '관리자',
-          date: dateStr,
-          createdAt: serverTimestamp()
-        });
+        const path = 'notices';
+        try {
+          await addDoc(collection(db, 'notices'), {
+            title: newNotice.title,
+            content: newNotice.content,
+            author: '관리자',
+            date: dateStr,
+            createdAt: serverTimestamp()
+          });
+        } catch (error) {
+          const err = handleFirestoreError(error, OperationType.CREATE, path);
+          throw new Error(err.error);
+        }
       }
       setNewNotice({ title: '', content: '' });
       setIsWriting(false);
       setSelectedNoticeId(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Submit error:', error);
-      alert('저장 중 오류가 발생했습니다. 관리자 권한을 확인하세요.');
+      if (error.message.includes('permission') || error.message.includes('insufficient')) {
+        alert(`권한 오류: 관리자 계정(${auth.currentUser?.email})으로 로그인되어 있지만, 서버에서 쓰기 권한이 거부되었습니다. 이메일 인증 여부를 확인해 주세요.`);
+      } else {
+        alert('저장 중 오류가 발생했습니다: ' + error.message);
+      }
     }
   };
 
