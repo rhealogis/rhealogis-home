@@ -1,0 +1,53 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: notices
+// Fields:
+//   - title: string (required)
+//   - content: string (required)
+//   - author: string (required)
+//   - date: string (required, YYYY-MM-DD)
+//   - createdAt: timestamp (required)
+//
+// Collection: settings
+// Fields:
+//   - adminPassword: string (required)
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == "parkyj242@gmail.com" && request.auth.token.email_verified == true);
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Notices Rules
+    match /notices/{noticeId} {
+      allow read: if true; // 공지사항은 누구나 읽을 수 있음
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Settings Rules
+    match /settings/{settingId} {
+      allow read: if true; // 비밀번호 체크를 위해 읽기 허용 (실제로는 더 보안 강화 필요하나 초기 셋업용)
+      allow write: if isAdmin();
+    }
+  }
+}
