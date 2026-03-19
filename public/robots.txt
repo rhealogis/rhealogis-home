@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://rhealogis.netlify.app/sitemap.xml
+Sitemap: https://rhealogis.kro.kr/sitemap.xml

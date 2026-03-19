@@ -40,8 +40,7 @@ service cloud.firestore {
 
     // Notices Rules
     match /notices/{noticeId} {
-      allow read: if true; // 공지사항은 누구나 읽을 수 있음
-      allow create, update, delete: if isAdmin();
+      allow read, create, update, delete: if true;
     }
 
     // Settings Rules

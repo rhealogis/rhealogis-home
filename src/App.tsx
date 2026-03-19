@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Truck, Package, Globe, ShoppingCart, ChevronRight, Mail, Phone, MapPin, Menu, X } from 'lucide-react';
+import { FloatingBackground } from './components/FloatingBackground';
 import { db, auth, googleProvider, signInWithPopup, onAuthStateChanged } from './firebase';
 import { 
   collection, 
@@ -52,22 +53,11 @@ export default function App() {
   const [imgError, setImgError] = useState(false);
   const [currentView, setCurrentView] = useState<'home' | 'notice'>('home');
   const [notices, setNotices] = useState<any[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [isAuthReady, setIsAuthReady] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const [isWriting, setIsWriting] = useState(false);
   const [newNotice, setNewNotice] = useState({ title: '', content: '' });
-  const [adminPassword, setAdminPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
   
   const [selectedNoticeId, setSelectedNoticeId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [actualAdminPassword, setActualAdminPassword] = useState('');
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
-  const [passwordError, setPasswordError] = useState('');
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -89,29 +79,6 @@ export default function App() {
   };
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setIsAuthReady(true);
-      if (currentUser && currentUser.email === 'parkyj242@gmail.com') {
-        setIsAdmin(true);
-      } else {
-        setIsAdmin(false);
-      }
-    });
-
-    // Fetch settings (admin password)
-    const fetchSettings = async () => {
-      const settingsDoc = await getDoc(doc(db, 'settings', 'admin'));
-      if (settingsDoc.exists()) {
-        setActualAdminPassword(settingsDoc.data().adminPassword);
-      } else {
-        // Initial setup if not exists
-        await setDoc(doc(db, 'settings', 'admin'), { adminPassword: 'admin' });
-        setActualAdminPassword('admin');
-      }
-    };
-    fetchSettings();
-
     // Real-time notices
     const q = query(collection(db, 'notices'));
     const unsubscribeNotices = onSnapshot(q, (snapshot) => {
@@ -130,78 +97,9 @@ export default function App() {
     });
 
     return () => {
-      unsubscribeAuth();
       unsubscribeNotices();
     };
   }, []);
-
-  const handleGoogleLogin = async () => {
-    setIsLoggingIn(true);
-    setLoginError('');
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      if (result.user.email !== 'parkyj242@gmail.com') {
-        setLoginError('지정된 관리자 이메일(parkyj242@gmail.com)이 아닙니다.');
-      } else {
-        setShowLoginModal(false);
-      }
-    } catch (error: any) {
-      console.error('Login error:', error);
-      if (error.code === 'auth/popup-blocked') {
-        setLoginError('브라우저의 팝업 차단이 설정되어 있습니다. 팝업을 허용해 주세요.');
-      } else if (error.code === 'auth/unauthorized-domain') {
-        setLoginError('Firebase 설정에서 현재 도메인이 승인되지 않았습니다. (Firebase 콘솔 > Authentication > Settings > Authorized domains 확인)');
-      } else {
-        setLoginError('로그인 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
-      }
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
-  const handleLogin = () => {
-    if (adminPassword === actualAdminPassword) {
-      // For now, we use password-based admin check as requested by UI
-      // But we also check Google Auth email for security in rules
-      if (user && user.email === 'parkyj242@gmail.com') {
-        setIsAdmin(true);
-        setShowLoginModal(false);
-        setLoginError('');
-        setAdminPassword('');
-      } else {
-        setLoginError('관리자 권한이 있는 Google 계정으로 로그인되어 있지 않습니다.');
-      }
-    } else {
-      setLoginError('비밀번호가 일치하지 않습니다.');
-    }
-  };
-
-  const handleChangePassword = async () => {
-    if (passwordForm.current !== actualAdminPassword) {
-      setPasswordError('현재 비밀번호가 일치하지 않습니다.');
-      return;
-    }
-    if (passwordForm.new !== passwordForm.confirm) {
-      setPasswordError('새 비밀번호가 일치하지 않습니다.');
-      return;
-    }
-    if (passwordForm.new.length < 4) {
-      setPasswordError('새 비밀번호는 4자리 이상이어야 합니다.');
-      return;
-    }
-    
-    try {
-      await updateDoc(doc(db, 'settings', 'admin'), { adminPassword: passwordForm.new });
-      setActualAdminPassword(passwordForm.new);
-      setShowPasswordModal(false);
-      setPasswordForm({ current: '', new: '', confirm: '' });
-      setPasswordError('');
-      alert('비밀번호가 변경되었습니다.');
-    } catch (error) {
-      console.error('Password change error:', error);
-      setPasswordError('비밀번호 변경 중 오류가 발생했습니다.');
-    }
-  };
 
   const handleEditClick = (notice: any) => {
     setNewNotice({ title: notice.title, content: notice.content });
@@ -235,7 +133,7 @@ export default function App() {
           await addDoc(collection(db, 'notices'), {
             title: newNotice.title,
             content: newNotice.content,
-            author: '관리자',
+            author: '작성자',
             date: dateStr,
             createdAt: serverTimestamp()
           });
@@ -249,11 +147,7 @@ export default function App() {
       setSelectedNoticeId(null);
     } catch (error: any) {
       console.error('Submit error:', error);
-      if (error.message.includes('permission') || error.message.includes('insufficient')) {
-        alert(`권한 오류: 관리자 계정(${auth.currentUser?.email})으로 로그인되어 있지만, 서버에서 쓰기 권한이 거부되었습니다. 이메일 인증 여부를 확인해 주세요.`);
-      } else {
-        alert('저장 중 오류가 발생했습니다: ' + error.message);
-      }
+      alert('저장 중 오류가 발생했습니다: ' + error.message);
     }
   };
 
@@ -281,9 +175,12 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-white font-sans selection:bg-purple-500 selection:text-white">
-      {/* Header */}
-      <header className="fixed top-0 w-full bg-black/90 backdrop-blur-sm border-b border-white/10 z-50 px-6 py-4 flex justify-between items-center">
+    <div className="min-h-screen bg-[#0d0d0d] text-white font-sans selection:bg-purple-500 selection:text-white relative overflow-x-hidden">
+      <FloatingBackground />
+      
+      <div className="relative z-10">
+        {/* Header */}
+        <header className="fixed top-0 w-full bg-black/90 backdrop-blur-sm border-b border-white/10 z-50 px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleNavClick('home')}>
           {!imgError ? (
             <img 
@@ -339,11 +236,11 @@ export default function App() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#0d0d0d]"></div>
         
         <div className="relative z-10 max-w-4xl mx-auto mt-20">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 leading-tight">
             Beyond Logistics, <br />
             <span className="text-[#8a2be2]">Connecting the World</span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto px-4">
             E-commerce, 물류, 무역의 새로운 기준을 제시합니다.<br />
             글로벌 비즈니스 파트너 레아 로지스와 함께 하세요.
           </p>
@@ -503,9 +400,9 @@ export default function App() {
       </section>
       </>
       ) : (
-        <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto min-h-screen">
+        <div className="pt-24 sm:pt-32 pb-20 px-4 sm:px-6 max-w-7xl mx-auto min-h-screen">
           {selectedNoticeId !== null && !isWriting ? (
-            <div className="bg-[#1a1a1a] rounded-2xl p-8 border border-white/10">
+            <div className="bg-[#1a1a1a] rounded-2xl p-5 sm:p-8 border border-white/10">
               {(() => {
                 const notice = notices.find(n => n.id === selectedNoticeId);
                 if (!notice) return null;
@@ -525,12 +422,10 @@ export default function App() {
                       <div className="flex gap-3">
                         <button onClick={() => setSelectedNoticeId(null)} className="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">목록으로</button>
                       </div>
-                      {isAdmin && (
-                        <div className="flex gap-3">
-                          <button onClick={() => handleDeleteNotice(notice.id)} className="px-6 py-2 bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors">삭제</button>
-                          <button onClick={() => handleEditClick(notice)} className="px-6 py-2 bg-[#8a2be2] hover:bg-purple-600 rounded-lg transition-colors">수정</button>
-                        </div>
-                      )}
+                      <div className="flex gap-3">
+                        <button onClick={() => handleDeleteNotice(notice.id)} className="px-6 py-2 bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors">삭제</button>
+                        <button onClick={() => handleEditClick(notice)} className="px-6 py-2 bg-[#8a2be2] hover:bg-purple-600 rounded-lg transition-colors">수정</button>
+                      </div>
                     </div>
                   </>
                 );
@@ -538,28 +433,16 @@ export default function App() {
             </div>
           ) : !isWriting ? (
             <>
-              <div className="flex justify-between items-end mb-10 border-b border-white/10 pb-6">
-                <h2 className="text-4xl font-bold">공지사항 (Notice)</h2>
-                {isAdmin ? (
-                  <div className="flex gap-3">
-                    <button onClick={() => setShowPasswordModal(true)} className="text-gray-400 hover:text-white transition-colors text-sm px-4 py-2 border border-white/10 rounded-lg">
-                      비밀번호 변경
-                    </button>
-                    <button onClick={() => { setIsWriting(true); setEditingId(null); setNewNotice({title: '', content: ''}); }} className="bg-[#8a2be2] hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
-                      글쓰기
-                    </button>
-                    <button onClick={() => auth.signOut()} className="text-gray-400 hover:text-white transition-colors text-sm px-4 py-2">
-                      로그아웃
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => setShowLoginModal(true)} className="text-gray-500 hover:text-white transition-colors text-sm">
-                    관리자 로그인
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 border-b border-white/10 pb-6 gap-4">
+                <h2 className="text-3xl sm:text-4xl font-bold">공지사항 (Notice)</h2>
+                <div className="flex gap-3 w-full sm:w-auto">
+                  <button onClick={() => { setIsWriting(true); setEditingId(null); setNewNotice({title: '', content: ''}); }} className="w-full sm:w-auto bg-[#8a2be2] hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-colors text-sm font-medium">
+                    글쓰기
                   </button>
-                )}
+                </div>
               </div>
-              <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden">
-                <table className="w-full text-left border-collapse">
+              <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[600px]">
                   <thead>
                     <tr className="bg-black/50 text-gray-400 text-sm border-b border-white/10">
                       <th className="py-4 px-6 font-medium w-16 text-center">No</th>
@@ -582,7 +465,7 @@ export default function App() {
               </div>
             </>
           ) : (
-            <div className="bg-[#1a1a1a] rounded-2xl p-8 border border-white/10">
+            <div className="bg-[#1a1a1a] rounded-2xl p-5 sm:p-8 border border-white/10">
               <h2 className="text-2xl font-bold mb-6">{editingId !== null ? '공지사항 수정' : '공지사항 작성'}</h2>
               <form onSubmit={handleWriteSubmit} className="space-y-6">
                 <div>
@@ -625,141 +508,6 @@ export default function App() {
               </form>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Login Modal */}
-      {showLoginModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] px-4">
-          <div className="bg-[#1a1a1a] p-8 rounded-2xl max-w-sm w-full border border-white/10">
-            <h3 className="text-xl font-bold mb-6">관리자 로그인</h3>
-            
-            {!user ? (
-              <div className="mb-6">
-                <p className="text-sm text-gray-400 mb-4">관리자 권한을 위해 Google 로그인이 필요합니다.</p>
-                <button 
-                  onClick={handleGoogleLogin}
-                  disabled={isLoggingIn}
-                  className={`w-full flex items-center justify-center gap-3 bg-white text-black font-medium py-3 rounded-lg hover:bg-gray-200 transition-colors ${isLoggingIn ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                  {isLoggingIn ? '로그인 중...' : 'Google로 로그인'}
-                </button>
-                {loginError && (
-                  <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                    <p className="text-red-500 text-xs leading-relaxed">{loginError}</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <div className="mb-4 p-3 bg-white/5 rounded-lg flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full" />
-                    <div className="overflow-hidden">
-                      <p className="text-sm font-medium truncate">{user.displayName}</p>
-                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                    </div>
-                  </div>
-                  <button onClick={() => auth.signOut()} className="text-xs text-gray-400 hover:text-white underline shrink-0">다른 계정</button>
-                </div>
-                
-                {user.email !== 'parkyj242@gmail.com' ? (
-                  <div className="mb-6 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                    <p className="text-yellow-500 text-xs leading-relaxed">
-                      현재 계정은 관리자 권한이 없습니다. <br/>
-                      <strong>parkyj242@gmail.com</strong> 계정으로 로그인해 주세요.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mb-6">
-                    <label className="block text-sm text-gray-400 mb-2">관리자 비밀번호</label>
-                    <input 
-                      type="password" 
-                      value={adminPassword} 
-                      onChange={e => setAdminPassword(e.target.value)} 
-                      onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                      className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#8a2be2] transition-colors" 
-                      placeholder="비밀번호를 입력하세요" 
-                      autoFocus
-                    />
-                    {loginError && <p className="text-red-500 text-sm mt-2">{loginError}</p>}
-                  </div>
-                )}
-              </>
-            )}
-            <div className="flex justify-end gap-3">
-              <button 
-                onClick={() => {setShowLoginModal(false); setLoginError(''); setAdminPassword('');}} 
-                className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-              >
-                취소
-              </button>
-              <button 
-                onClick={handleLogin} 
-                className="bg-[#8a2be2] hover:bg-purple-600 px-6 py-2 rounded-lg text-white transition-colors"
-              >
-                로그인
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Password Change Modal */}
-      {showPasswordModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] px-4">
-          <div className="bg-[#1a1a1a] p-8 rounded-2xl max-w-sm w-full border border-white/10">
-            <h3 className="text-xl font-bold mb-6">비밀번호 변경</h3>
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">현재 비밀번호</label>
-                <input 
-                  type="password" 
-                  value={passwordForm.current} 
-                  onChange={e => setPasswordForm({...passwordForm, current: e.target.value})} 
-                  className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#8a2be2] transition-colors" 
-                  placeholder="현재 비밀번호" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">새 비밀번호</label>
-                <input 
-                  type="password" 
-                  value={passwordForm.new} 
-                  onChange={e => setPasswordForm({...passwordForm, new: e.target.value})} 
-                  className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#8a2be2] transition-colors" 
-                  placeholder="새 비밀번호 (4자리 이상)" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">새 비밀번호 확인</label>
-                <input 
-                  type="password" 
-                  value={passwordForm.confirm} 
-                  onChange={e => setPasswordForm({...passwordForm, confirm: e.target.value})} 
-                  onKeyDown={e => e.key === 'Enter' && handleChangePassword()}
-                  className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#8a2be2] transition-colors" 
-                  placeholder="새 비밀번호 확인" 
-                />
-              </div>
-              {passwordError && <p className="text-red-500 text-sm mt-2">{passwordError}</p>}
-            </div>
-            <div className="flex justify-end gap-3">
-              <button 
-                onClick={() => {setShowPasswordModal(false); setPasswordError(''); setPasswordForm({current: '', new: '', confirm: ''});}} 
-                className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-              >
-                취소
-              </button>
-              <button 
-                onClick={handleChangePassword} 
-                className="bg-[#8a2be2] hover:bg-purple-600 px-6 py-2 rounded-lg text-white transition-colors"
-              >
-                변경
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
@@ -907,6 +655,7 @@ export default function App() {
           </div>
         </div>
       </footer>
+      </div>
     </div>
   );
 }
