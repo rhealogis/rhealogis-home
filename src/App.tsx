@@ -273,16 +273,16 @@ export default function App() {
       {currentView === 'home' ? (
         <>
           {/* Hero Section */}
-          <section id="home" className="relative h-screen flex flex-col justify-center items-center text-center px-4">
+          <section id="home" className="relative min-h-[80vh] sm:h-screen flex flex-col justify-center items-center text-center px-4 pt-16 landscape:pt-24 sm:pt-0">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-luminosity"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#0d0d0d]"></div>
         
-        <div className="relative z-10 max-w-4xl mx-auto mt-12 sm:mt-20">
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
+        <div className="relative z-10 max-w-4xl mx-auto mt-8 landscape:mt-16 sm:mt-20">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-3 sm:mb-6 leading-tight">
             Beyond Logistics, <br />
             <span className="text-[#8a2be2]">Connecting the World</span>
           </h1>
-          <p className="text-sm sm:text-lg md:text-xl text-gray-400 mb-8 sm:mb-10 max-w-3xl mx-auto px-4">
+          <p className="text-sm sm:text-lg md:text-xl text-gray-400 mb-6 sm:mb-10 max-w-3xl mx-auto px-4">
             E-commerce 및 Digital Content Marketing의 기준을 제시합니다.<br />
             글로벌 비즈니스 파트너 레아 로지스와 함께 하세요.
           </p>
@@ -293,9 +293,9 @@ export default function App() {
       </section>
 
       {/* Business Section */}
-      <section id="business" className="py-12 sm:py-24 px-6 max-w-6xl mx-auto">
-        <div className="text-center mb-10 sm:16">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Business Areas</h2>
+      <section id="business" className="py-10 landscape:py-20 sm:py-24 px-6 max-w-6xl mx-auto">
+        <div className="text-center mb-8 landscape:mb-12 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-3">Business Areas</h2>
           <p className="text-gray-400 text-sm sm:text-base">레아 로지스의 핵심 사업 영역을 소개합니다.</p>
         </div>
 
@@ -366,11 +366,11 @@ export default function App() {
       </section>
 
       {/* About / Stats Section */}
-      <section id="about" className="py-12 sm:py-20 border-y border-white/5 bg-[#111]">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 text-center">
+      <section id="about" className="py-10 landscape:py-20 sm:py-20 border-y border-white/5 bg-[#111]">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-6 landscape:gap-10 sm:gap-12 text-center">
           <div>
-            <div className="text-4xl sm:text-5xl font-bold text-[#8a2be2] mb-2">1st</div>
-            <div className="text-gray-400 text-sm sm:text-base">Pioneering Innovation:<br/>Aiming to be the Leader in AI-Driven Business Automation.</div>
+            <div className="text-3xl sm:text-5xl font-bold text-[#8a2be2] mb-1">1st</div>
+            <div className="text-gray-400 text-xs sm:text-base">Pioneering Innovation:<br/>Aiming to be the Leader in AI-Driven Business Automation.</div>
           </div>
           <div>
             <div className="text-5xl font-bold text-[#8a2be2] mb-2">5+</div>
@@ -384,9 +384,9 @@ export default function App() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-16 sm:py-32 px-6 max-w-7xl mx-auto">
+      <section id="contact" className="py-12 landscape:py-24 sm:py-32 px-6 max-w-7xl mx-auto">
         <div className="max-w-3xl">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-8 sm:mb-12">Growing together, your reliable e-commerce partner.</h2>
+          <h2 className="text-2xl sm:text-4xl font-bold mb-6 landscape:mb-10 sm:mb-12">Growing together, your reliable e-commerce partner.</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-[#1a1a1a] p-8 rounded-2xl border border-white/5 hover:border-[#8a2be2]/30 transition-colors group">
