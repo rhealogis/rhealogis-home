@@ -255,20 +255,20 @@ export default function App() {
         >
           {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
-
-        {/* Mobile Nav Overlay */}
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 top-[60px] sm:top-[73px] bg-black/95 z-40 md:hidden animate-in fade-in slide-in-from-top-4 duration-300 overflow-y-auto">
-            <nav className="flex flex-col items-center justify-start min-h-full py-20 gap-8 text-xl font-bold">
-              <button onClick={() => handleNavClick('home', 'home')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Home</button>
-              <button onClick={() => handleNavClick('home', 'about')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">About</button>
-              <button onClick={() => handleNavClick('home', 'business')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Business</button>
-              <button onClick={() => handleNavClick('notice')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Notice</button>
-              <button onClick={() => handleNavClick('home', 'contact')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Contact</button>
-            </nav>
-          </div>
-        )}
       </header>
+
+      {/* Mobile Nav Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 top-[60px] sm:top-[73px] bg-black/95 z-40 md:hidden overflow-y-auto">
+          <nav className="flex flex-col items-center justify-start min-h-full py-20 gap-8 text-xl font-bold text-white">
+            <button onClick={() => handleNavClick('home', 'home')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Home</button>
+            <button onClick={() => handleNavClick('home', 'about')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">About</button>
+            <button onClick={() => handleNavClick('home', 'business')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Business</button>
+            <button onClick={() => handleNavClick('notice')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Notice</button>
+            <button onClick={() => handleNavClick('home', 'contact')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Contact</button>
+          </nav>
+        </div>
+      )}
 
       {currentView === 'home' ? (
         <>
