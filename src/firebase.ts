@@ -2,21 +2,18 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Import the Firebase configuration from the generated file
-import firebaseConfigFromJson from '../firebase-applet-config.json';
-
 // Prioritize environment variables (VITE_ prefix for Vite)
-// This allows the app to work on Netlify without committing the config file
+// Fallback to hardcoded values for the AI Studio preview environment
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || firebaseConfigFromJson.apiKey,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || firebaseConfigFromJson.authDomain,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || firebaseConfigFromJson.projectId,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || firebaseConfigFromJson.storageBucket,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || firebaseConfigFromJson.messagingSenderId,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || firebaseConfigFromJson.appId,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyA2NA3dDzvgPwgSp4lNZBlR-XijxgFnHBI",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "ai-studio-applet-webapp-aec7b.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "ai-studio-applet-webapp-aec7b",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "ai-studio-applet-webapp-aec7b.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "489214916782",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:489214916782:web:ef7072d52b49104023d53f",
 };
 
-const firestoreDatabaseId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || firebaseConfigFromJson.firestoreDatabaseId;
+const firestoreDatabaseId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || "ai-studio-66c8e64e-ae90-4a84-9aaf-e87258168d65";
 
 // Initialize Firebase SDK
 const app = initializeApp(firebaseConfig);
