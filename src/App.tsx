@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, Package, Globe, ShoppingCart, ChevronRight, Mail, Phone, MapPin, Menu, X } from 'lucide-react';
+import { Truck, Package, Globe, ShoppingCart, ChevronRight, Mail, Phone, MapPin, Menu, X, Video } from 'lucide-react';
 import { FloatingBackground } from './components/FloatingBackground';
 import { db, auth, googleProvider, signInWithPopup, onAuthStateChanged } from './firebase';
 import { 
@@ -61,6 +61,32 @@ export default function App() {
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [flyDistance, setFlyDistance] = useState({ x: 0, y: 0 });
+  const logoRef = React.useRef<HTMLDivElement>(null);
+  const homeRef = React.useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const calculateDistance = () => {
+      if (logoRef.current && homeRef.current) {
+        const logoRect = logoRef.current.getBoundingClientRect();
+        const homeRect = homeRef.current.getBoundingClientRect();
+        
+        // Calculate distance from the end of RHEA LOGIS to the start of Home
+        // The icon starts at logoRect.right + 8px (ml-2)
+        // We want it to end at homeRect.left - 24px (just before Home)
+        const startX = logoRect.right + 8;
+        const endX = homeRect.left - 24;
+        const x = endX - startX;
+        const y = 0; // Perfectly parallel flight
+        
+        setFlyDistance({ x, y });
+      }
+    };
+
+    calculateDistance();
+    window.addEventListener('resize', calculateDistance);
+    return () => window.removeEventListener('resize', calculateDistance);
+  }, []);
 
   const handleFirestoreError = (error: any, operationType: OperationType, path: string | null) => {
     const errInfo: FirestoreErrorInfo = {
@@ -180,25 +206,36 @@ export default function App() {
       
       <div className="relative z-10">
         {/* Header */}
-        <header className="fixed top-0 w-full bg-black/90 backdrop-blur-sm border-b border-white/10 z-50 px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleNavClick('home')}>
+        <header className="fixed top-0 w-full bg-black/90 backdrop-blur-sm border-b border-white/10 z-50 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
+        <div className="flex items-center gap-2 sm:gap-3 cursor-pointer relative" onClick={() => handleNavClick('home')} ref={logoRef}>
           {!imgError ? (
             <img 
               src="/logo.png" 
               alt="Rhea Logis Logo" 
-              className="h-10 md:h-12 object-contain bg-white/90 rounded p-1" 
+              className="h-8 sm:h-10 md:h-12 object-contain bg-white/90 rounded p-1" 
               onError={() => setImgError(true)} 
             />
           ) : (
-            <LogoSVG className="w-8 h-8 md:w-10 md:h-10 text-white" />
+            <LogoSVG className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white" />
           )}
-          <span className="text-xl md:text-2xl font-bold tracking-tight">RHEA LOGIS</span>
+          <span className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight">RHEA LOGIS</span>
+          
+          {/* Flying Product Icon */}
+          <div 
+            className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden md:block animate-logo-fly"
+            style={{ 
+              '--fly-x': `${flyDistance.x}px`, 
+              '--fly-y': `${flyDistance.y}px` 
+            } as React.CSSProperties}
+          >
+            <Package className="text-white" size={20} />
+          </div>
         </div>
         
         {/* Desktop Nav */}
         <nav className="hidden md:block">
           <ul className="flex gap-8 text-sm font-medium text-gray-300">
-            <li><button onClick={() => handleNavClick('home', 'home')} className="hover:text-[#8a2be2] transition-colors">Home</button></li>
+            <li><button ref={homeRef} onClick={() => handleNavClick('home', 'home')} className="hover:text-[#8a2be2] transition-colors">Home</button></li>
             <li><button onClick={() => handleNavClick('home', 'about')} className="hover:text-[#8a2be2] transition-colors">About</button></li>
             <li><button onClick={() => handleNavClick('home', 'business')} className="hover:text-[#8a2be2] transition-colors">Business</button></li>
             <li><button onClick={() => handleNavClick('notice')} className="hover:text-[#8a2be2] transition-colors">Notice</button></li>
@@ -216,13 +253,13 @@ export default function App() {
 
         {/* Mobile Nav Overlay */}
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 top-[73px] bg-black/95 z-40 md:hidden animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="fixed inset-0 top-[60px] sm:top-[73px] bg-black/95 z-40 md:hidden animate-in fade-in slide-in-from-top-4 duration-300">
             <nav className="flex flex-col items-center justify-center h-full gap-8 text-xl font-bold">
-              <button onClick={() => handleNavClick('home', 'home')} className="hover:text-[#8a2be2] transition-colors">Home</button>
-              <button onClick={() => handleNavClick('home', 'about')} className="hover:text-[#8a2be2] transition-colors">About</button>
-              <button onClick={() => handleNavClick('home', 'business')} className="hover:text-[#8a2be2] transition-colors">Business</button>
-              <button onClick={() => handleNavClick('notice')} className="hover:text-[#8a2be2] transition-colors">Notice</button>
-              <button onClick={() => handleNavClick('home', 'contact')} className="hover:text-[#8a2be2] transition-colors">Contact</button>
+              <button onClick={() => handleNavClick('home', 'home')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Home</button>
+              <button onClick={() => handleNavClick('home', 'about')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">About</button>
+              <button onClick={() => handleNavClick('home', 'business')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Business</button>
+              <button onClick={() => handleNavClick('notice')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Notice</button>
+              <button onClick={() => handleNavClick('home', 'contact')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Contact</button>
             </nav>
           </div>
         )}
@@ -240,8 +277,8 @@ export default function App() {
             Beyond Logistics, <br />
             <span className="text-[#8a2be2]">Connecting the World</span>
           </h1>
-          <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto px-4">
-            E-commerce, 물류, 무역의 새로운 기준을 제시합니다.<br />
+          <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-10 max-w-3xl mx-auto px-4">
+            E-commerce 및 Digital Content Marketing의 기준을 제시합니다.<br />
             글로벌 비즈니스 파트너 레아 로지스와 함께 하세요.
           </p>
           <a href="#business" className="inline-flex items-center gap-2 bg-[#8a2be2] hover:bg-purple-600 text-white px-8 py-4 rounded-full font-medium transition-all transform hover:scale-105">
@@ -251,93 +288,72 @@ export default function App() {
       </section>
 
       {/* Business Section */}
-      <section id="business" className="py-32 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-20">
+      <section id="business" className="py-24 px-6 max-w-6xl mx-auto">
+        <div className="text-center mb-16">
           <h2 className="text-4xl font-bold mb-4">Business Areas</h2>
           <p className="text-gray-400">레아 로지스의 핵심 사업 영역을 소개합니다.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1 */}
           <div className="bg-[#1a1a1a] rounded-2xl border-b-4 border-transparent hover:border-[#8a2be2] hover:-translate-y-2 transition-all duration-300 group overflow-hidden">
-            <div className="h-48 overflow-hidden">
+            <div className="h-40 overflow-hidden">
               <img 
-                src="https://images.unsplash.com/photo-1524850011238-e3d235c7d4c9?auto=format&fit=crop&q=80&w=600&h=400" 
-                alt="해외 수출입" 
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                src="https://picsum.photos/seed/luxury-shopping-mall/600/400" 
+                alt="E-Commerce" 
+                className="w-full h-full object-cover animate-slow-zoom group-hover:animate-none group-hover:scale-110 transition-transform duration-500"
                 referrerPolicy="no-referrer"
               />
             </div>
-            <div className="p-8">
-              <div className="w-14 h-14 bg-purple-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-purple-500/20 transition-colors">
-                <Truck className="text-[#8a2be2]" size={32} />
+            <div className="p-6">
+              <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-500/20 transition-colors">
+                <ShoppingCart className="text-[#8a2be2] animate-slow-spin group-hover:animate-fast-spin" size={28} />
               </div>
-              <h3 className="text-xl font-bold mb-3">해외 수출입</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                해외 각국의 시장에 특화된 무역 솔루션. 현지 파트너십을 통한 신속하고 정확한 수출입 업무를 진행합니다.
+              <h3 className="text-lg font-bold mb-2">E-Commerce</h3>
+              <p className="text-gray-400 text-xs leading-relaxed">
+                전자 상거래를 통해 국내 및 해외의 고객에게 세계 각국의 다양하고 우수한 상품을 신속하게 공급합니다. 5가지 AI를 활용한 상품 소싱과 제품에 대한 정확하고 자세한 정보를 제공합니다.
               </p>
             </div>
           </div>
 
           {/* Card 2 */}
           <div className="bg-[#1a1a1a] rounded-2xl border-b-4 border-transparent hover:border-[#8a2be2] hover:-translate-y-2 transition-all duration-300 group overflow-hidden">
-            <div className="h-48 overflow-hidden">
+            <div className="h-40 overflow-hidden">
               <img 
-                src="https://picsum.photos/seed/luxury-shopping-mall/600/400" 
-                alt="해외직구 대행" 
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=600&h=400" 
+                alt="All-in-One E-commerce Fulfillment & Logistics Solutions" 
+                className="w-full h-full object-cover animate-slow-zoom group-hover:animate-none group-hover:scale-110 transition-transform duration-500"
                 referrerPolicy="no-referrer"
               />
             </div>
-            <div className="p-8">
-              <div className="w-14 h-14 bg-purple-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-purple-500/20 transition-colors">
-                <ShoppingCart className="text-[#8a2be2]" size={32} />
+            <div className="p-6">
+              <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-500/20 transition-colors">
+                <Package className="text-[#8a2be2] animate-slow-spin group-hover:animate-fast-spin" size={28} />
               </div>
-              <h3 className="text-xl font-bold mb-3">해외직구 대행</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                복잡한 해외직구를 쉽고 편리하게. B2B, B2C 고객을 위한 맞춤형 구매 대행 및 배송 서비스를 제공합니다.
+              <h3 className="text-lg font-bold mb-2">All-in-One E-commerce Fulfillment & Logistics Solutions</h3>
+              <p className="text-gray-400 text-xs leading-relaxed">
+                구매, 보관, 배송에 대한 전략적 조달 솔루션을 통해 국내외 파트너의 성장을 지원합니다.
               </p>
             </div>
           </div>
 
           {/* Card 3 */}
           <div className="bg-[#1a1a1a] rounded-2xl border-b-4 border-transparent hover:border-[#8a2be2] hover:-translate-y-2 transition-all duration-300 group overflow-hidden">
-            <div className="h-48 overflow-hidden">
+            <div className="h-40 overflow-hidden">
               <img 
-                src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&q=80&w=600&h=400" 
-                alt="유통" 
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=600&h=400" 
+                alt="Omnichannel Content Production and Marketing" 
+                className="w-full h-full object-cover animate-slow-zoom group-hover:animate-none group-hover:scale-110 transition-transform duration-500"
                 referrerPolicy="no-referrer"
               />
             </div>
-            <div className="p-8">
-              <div className="w-14 h-14 bg-purple-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-purple-500/20 transition-colors">
-                <Package className="text-[#8a2be2]" size={32} />
+            <div className="p-6">
+              <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-500/20 transition-colors">
+                <Video className="text-[#8a2be2] animate-slow-spin group-hover:animate-fast-spin" size={28} />
               </div>
-              <h3 className="text-xl font-bold mb-3">유통</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                K-product의 세계화를 선도합니다. 국내외 우수 상품의 글로벌 유통을 추진합니다.
-              </p>
-            </div>
-          </div>
-
-          {/* Card 4 */}
-          <div className="bg-[#1a1a1a] rounded-2xl border-b-4 border-transparent hover:border-[#8a2be2] hover:-translate-y-2 transition-all duration-300 group overflow-hidden">
-            <div className="h-48 overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=600&h=400" 
-                alt="글로벌 물류" 
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            <div className="p-8">
-              <div className="w-14 h-14 bg-purple-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-purple-500/20 transition-colors">
-                <Globe className="text-[#8a2be2]" size={32} />
-              </div>
-              <h3 className="text-xl font-bold mb-3">글로벌 물류</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                전 세계를 연결하는 빠르고 안전한 물류 네트워크. 해상, 항공 운송을 통한 서비스를 제공합니다.
+              <h3 className="text-lg font-bold mb-2">Omnichannel Content Production and Marketing</h3>
+              <p className="text-gray-400 text-xs leading-relaxed">
+                창의적인 콘텐츠 제작 및 고객이 머무는 플랫폼 접점의 유기적 연결을 통한 디지털 마케팅 사업을 수행합니다.
               </p>
             </div>
           </div>
@@ -348,16 +364,16 @@ export default function App() {
       <section id="about" className="py-20 border-y border-white/5 bg-[#111]">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
           <div>
-            <div className="text-5xl font-bold text-[#8a2be2] mb-2">30+</div>
-            <div className="text-gray-400">Years of Representative's experience<br/>as a large company manager</div>
+            <div className="text-5xl font-bold text-[#8a2be2] mb-2">1st</div>
+            <div className="text-gray-400">Pioneering Innovation:<br/>Aiming to be the Leader in AI-Driven Business Automation.</div>
           </div>
           <div>
             <div className="text-5xl font-bold text-[#8a2be2] mb-2">5+</div>
-            <div className="text-gray-400">Target to enter foreign countries</div>
+            <div className="text-gray-400">Scaling our Global Reach:<br/>Targeting Expansion into 5+ Strategic Markets.</div>
           </div>
           <div>
             <div className="text-5xl font-bold text-[#8a2be2] mb-2">99%</div>
-            <div className="text-gray-400">Aiming for customer satisfaction</div>
+            <div className="text-gray-400">Driving Excellence:<br/>Targeting a 99% Customer Satisfaction Rate.</div>
           </div>
         </div>
       </section>
@@ -365,32 +381,28 @@ export default function App() {
       {/* Contact Section */}
       <section id="contact" className="py-32 px-6 max-w-7xl mx-auto">
         <div className="max-w-3xl">
-          <h2 className="text-4xl font-bold mb-6">Contact Us</h2>
-          <p className="text-gray-400 mb-12 leading-relaxed text-lg">
-            레아 로지스는 고객의 비즈니스 성공을 위해 최선을 다합니다. <br />
-            궁금하신 점이 있다면 언제든 연락 주시기 바랍니다.
-          </p>
+          <h2 className="text-4xl font-bold mb-12">Growing together, your reliable e-commerce partner.</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-[#1a1a1a] p-8 rounded-2xl border border-white/5 hover:border-[#8a2be2]/30 transition-colors">
+            <div className="bg-[#1a1a1a] p-8 rounded-2xl border border-white/5 hover:border-[#8a2be2]/30 transition-colors group">
               <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center mb-6">
-                <MapPin className="text-[#8a2be2]" size={24} />
+                <MapPin className="text-[#8a2be2] animate-slow-spin group-hover:animate-fast-spin" size={24} />
               </div>
               <div className="text-sm text-gray-500 mb-2 font-medium uppercase tracking-wider">Address</div>
               <div className="text-gray-200 leading-relaxed">서울특별시 동작구 상도로53,<br/>주식회사 레아 로지스</div>
             </div>
 
-            <div className="bg-[#1a1a1a] p-8 rounded-2xl border border-white/5 hover:border-[#8a2be2]/30 transition-colors">
+            <div className="bg-[#1a1a1a] p-8 rounded-2xl border border-white/5 hover:border-[#8a2be2]/30 transition-colors group">
               <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center mb-6">
-                <Phone className="text-[#8a2be2]" size={24} />
+                <Phone className="text-[#8a2be2] animate-slow-spin group-hover:animate-fast-spin" size={24} />
               </div>
               <div className="text-sm text-gray-500 mb-2 font-medium uppercase tracking-wider">Customer Service</div>
               <div className="text-gray-200">82-10-2624-9489</div>
             </div>
 
-            <div className="bg-[#1a1a1a] p-8 rounded-2xl border border-white/5 hover:border-[#8a2be2]/30 transition-colors">
+            <div className="bg-[#1a1a1a] p-8 rounded-2xl border border-white/5 hover:border-[#8a2be2]/30 transition-colors group">
               <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center mb-6">
-                <Mail className="text-[#8a2be2]" size={24} />
+                <Mail className="text-[#8a2be2] animate-slow-spin group-hover:animate-fast-spin" size={24} />
               </div>
               <div className="text-sm text-gray-500 mb-2 font-medium uppercase tracking-wider">Email</div>
               <div className="text-gray-200">rhealogis@gmail.com</div>
@@ -441,23 +453,23 @@ export default function App() {
                   </button>
                 </div>
               </div>
-              <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[600px]">
+              <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden overflow-x-auto border border-white/5">
+                <table className="w-full text-left border-collapse min-w-[500px] sm:min-w-[600px]">
                   <thead>
-                    <tr className="bg-black/50 text-gray-400 text-sm border-b border-white/10">
-                      <th className="py-4 px-6 font-medium w-16 text-center">No</th>
-                      <th className="py-4 px-6 font-medium">제목</th>
-                      <th className="py-4 px-6 font-medium w-32 text-center">작성자</th>
-                      <th className="py-4 px-6 font-medium w-32 text-center">등록일</th>
+                    <tr className="bg-black/50 text-gray-400 text-xs border-b border-white/10">
+                      <th className="py-4 px-4 sm:px-6 font-medium w-12 sm:w-16 text-center">No</th>
+                      <th className="py-4 px-4 sm:px-6 font-medium">제목</th>
+                      <th className="py-4 px-4 sm:px-6 font-medium w-24 sm:w-32 text-center">작성자</th>
+                      <th className="py-4 px-4 sm:px-6 font-medium w-24 sm:w-32 text-center">등록일</th>
                     </tr>
                   </thead>
                   <tbody>
                     {notices.map((notice, index) => (
                       <tr key={notice.id} onClick={() => setSelectedNoticeId(notice.id)} className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer">
-                        <td className="py-4 px-6 text-center text-gray-500">{notices.length - index}</td>
-                        <td className="py-4 px-6 text-gray-200 hover:text-[#8a2be2] transition-colors">{notice.title}</td>
-                        <td className="py-4 px-6 text-center text-gray-400 text-sm">{notice.author}</td>
-                        <td className="py-4 px-6 text-center text-gray-400 text-sm">{notice.date}</td>
+                        <td className="py-4 px-4 sm:px-6 text-center text-gray-500 text-xs sm:text-sm">{notices.length - index}</td>
+                        <td className="py-4 px-4 sm:px-6 text-gray-200 hover:text-[#8a2be2] transition-colors text-sm sm:text-base">{notice.title}</td>
+                        <td className="py-4 px-4 sm:px-6 text-center text-gray-400 text-xs sm:text-sm">{notice.author}</td>
+                        <td className="py-4 px-4 sm:px-6 text-center text-gray-400 text-xs sm:text-sm">{notice.date}</td>
                       </tr>
                     ))}
                   </tbody>

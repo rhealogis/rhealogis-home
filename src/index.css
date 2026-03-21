@@ -1,1 +1,39 @@
 @import "tailwindcss";
+
+@theme {
+  --animate-slow-zoom: slow-zoom 10s ease-in-out infinite;
+  --animate-slow-spin: slow-spin 8s linear infinite;
+  @keyframes slow-zoom {
+    0%, 100% { transform: scale(1) translateX(0) translateY(0); }
+    50% { transform: scale(1.2) translateX(-3%) translateY(-2%); }
+  }
+  @keyframes slow-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  --animate-fast-spin: fast-spin 2s linear infinite;
+  @keyframes fast-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  --animate-logo-fly: logo-fly 4s linear infinite;
+  @keyframes logo-fly {
+    0% {
+      transform: translateX(0) translateY(0) rotate(0deg);
+      opacity: 0;
+    }
+    5% {
+      opacity: 1;
+    }
+    45% {
+      opacity: 1;
+    }
+    55% {
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(var(--fly-x, 150px)) translateY(var(--fly-y, 0)) rotate(360deg);
+      opacity: 0;
+    }
+  }
+}
