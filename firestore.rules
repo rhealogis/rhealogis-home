@@ -27,26 +27,18 @@ service cloud.firestore {
     
     function isAdmin() {
       return isAuthenticated() && 
-        (request.auth.token.email == "parkyj242@gmail.com");
-    }
-
-    function hasRequiredFields(fields) {
-      return request.resource.data.keys().hasAll(fields);
-    }
-
-    function hasOnlyAllowedFields(fields) {
-      return request.resource.data.keys().hasOnly(fields);
+        (request.auth.token.email == "parkyj242@gmail.com" && request.auth.token.email_verified == true);
     }
 
     // Notices Rules
     match /notices/{noticeId} {
-      allow read, create, update, delete: if true;
+      allow read: if true; // 공지사항은 누구나 읽을 수 있음
+      allow write: if isAdmin(); // 작성/수정/삭제는 관리자만
     }
 
     // Settings Rules
     match /settings/{settingId} {
-      allow read: if true; // 비밀번호 체크를 위해 읽기 허용 (실제로는 더 보안 강화 필요하나 초기 셋업용)
-      allow write: if isAdmin();
+      allow read, write: if isAdmin(); // 설정은 관리자만 접근 가능
     }
   }
 }

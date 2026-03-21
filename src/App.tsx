@@ -67,17 +67,22 @@ export default function App() {
 
   useEffect(() => {
     const calculateDistance = () => {
-      if (logoRef.current && homeRef.current) {
+      if (logoRef.current) {
         const logoRect = logoRef.current.getBoundingClientRect();
-        const homeRect = homeRef.current.getBoundingClientRect();
+        // Default target is near the right edge of the screen (hamburger menu area)
+        let endX = window.innerWidth - 80;
         
-        // Calculate distance from the end of RHEA LOGIS to the start of Home
-        // The icon starts at logoRect.right + 8px (ml-2)
-        // We want it to end at homeRect.left - 24px (just before Home)
+        if (homeRef.current) {
+          const homeRect = homeRef.current.getBoundingClientRect();
+          // If the desktop home button is visible, fly to it
+          if (homeRect.width > 0 && homeRect.left > 0) {
+            endX = homeRect.left - 24;
+          }
+        }
+        
         const startX = logoRect.right + 8;
-        const endX = homeRect.left - 24;
-        const x = endX - startX;
-        const y = 0; // Perfectly parallel flight
+        const x = Math.max(50, endX - startX); // Ensure at least some movement
+        const y = 0; 
         
         setFlyDistance({ x, y });
       }
@@ -222,13 +227,13 @@ export default function App() {
           
           {/* Flying Product Icon */}
           <div 
-            className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden md:block animate-logo-fly"
+            className="absolute left-full ml-2 top-1/2 -translate-y-1/2 animate-logo-fly"
             style={{ 
               '--fly-x': `${flyDistance.x}px`, 
               '--fly-y': `${flyDistance.y}px` 
             } as React.CSSProperties}
           >
-            <Package className="text-white" size={20} />
+            <Package className="text-white" size={18} />
           </div>
         </div>
         
@@ -253,8 +258,8 @@ export default function App() {
 
         {/* Mobile Nav Overlay */}
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 top-[60px] sm:top-[73px] bg-black/95 z-40 md:hidden animate-in fade-in slide-in-from-top-4 duration-300">
-            <nav className="flex flex-col items-center justify-center h-full gap-8 text-xl font-bold">
+          <div className="fixed inset-0 top-[60px] sm:top-[73px] bg-black/95 z-40 md:hidden animate-in fade-in slide-in-from-top-4 duration-300 overflow-y-auto">
+            <nav className="flex flex-col items-center justify-start min-h-full py-20 gap-8 text-xl font-bold">
               <button onClick={() => handleNavClick('home', 'home')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Home</button>
               <button onClick={() => handleNavClick('home', 'about')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">About</button>
               <button onClick={() => handleNavClick('home', 'business')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Business</button>
@@ -272,26 +277,26 @@ export default function App() {
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-luminosity"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#0d0d0d]"></div>
         
-        <div className="relative z-10 max-w-4xl mx-auto mt-20">
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 leading-tight">
+        <div className="relative z-10 max-w-4xl mx-auto mt-12 sm:mt-20">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
             Beyond Logistics, <br />
             <span className="text-[#8a2be2]">Connecting the World</span>
           </h1>
-          <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-10 max-w-3xl mx-auto px-4">
+          <p className="text-sm sm:text-lg md:text-xl text-gray-400 mb-8 sm:mb-10 max-w-3xl mx-auto px-4">
             E-commerce 및 Digital Content Marketing의 기준을 제시합니다.<br />
             글로벌 비즈니스 파트너 레아 로지스와 함께 하세요.
           </p>
-          <a href="#business" className="inline-flex items-center gap-2 bg-[#8a2be2] hover:bg-purple-600 text-white px-8 py-4 rounded-full font-medium transition-all transform hover:scale-105">
+          <a href="#business" className="inline-flex items-center gap-2 bg-[#8a2be2] hover:bg-purple-600 text-white px-6 py-3 sm:px-8 sm:py-4 rounded-full font-medium transition-all transform hover:scale-105 text-sm sm:text-base">
             Our Business <ChevronRight size={20} />
           </a>
         </div>
       </section>
 
       {/* Business Section */}
-      <section id="business" className="py-24 px-6 max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Business Areas</h2>
-          <p className="text-gray-400">레아 로지스의 핵심 사업 영역을 소개합니다.</p>
+      <section id="business" className="py-12 sm:py-24 px-6 max-w-6xl mx-auto">
+        <div className="text-center mb-10 sm:16">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Business Areas</h2>
+          <p className="text-gray-400 text-sm sm:text-base">레아 로지스의 핵심 사업 영역을 소개합니다.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -361,11 +366,11 @@ export default function App() {
       </section>
 
       {/* About / Stats Section */}
-      <section id="about" className="py-20 border-y border-white/5 bg-[#111]">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+      <section id="about" className="py-12 sm:py-20 border-y border-white/5 bg-[#111]">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 text-center">
           <div>
-            <div className="text-5xl font-bold text-[#8a2be2] mb-2">1st</div>
-            <div className="text-gray-400">Pioneering Innovation:<br/>Aiming to be the Leader in AI-Driven Business Automation.</div>
+            <div className="text-4xl sm:text-5xl font-bold text-[#8a2be2] mb-2">1st</div>
+            <div className="text-gray-400 text-sm sm:text-base">Pioneering Innovation:<br/>Aiming to be the Leader in AI-Driven Business Automation.</div>
           </div>
           <div>
             <div className="text-5xl font-bold text-[#8a2be2] mb-2">5+</div>
@@ -379,9 +384,9 @@ export default function App() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-32 px-6 max-w-7xl mx-auto">
+      <section id="contact" className="py-16 sm:py-32 px-6 max-w-7xl mx-auto">
         <div className="max-w-3xl">
-          <h2 className="text-4xl font-bold mb-12">Growing together, your reliable e-commerce partner.</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-8 sm:mb-12">Growing together, your reliable e-commerce partner.</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-[#1a1a1a] p-8 rounded-2xl border border-white/5 hover:border-[#8a2be2]/30 transition-colors group">
