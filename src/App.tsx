@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, Package, Globe, ShoppingCart, ChevronRight, Mail, Phone, MapPin, Menu, X, Video, ArrowRight, ArrowLeft, Box, Container, Plane } from 'lucide-react';
+import { Truck, Package, Globe, ShoppingCart, ChevronRight, Mail, Phone, MapPin, Menu, X, Video, ArrowRight, ArrowLeft, Box, Container, Plane, Home, Shield, Search, Star, Building, Layout, Heart, Users } from 'lucide-react';
 import { FloatingBackground } from './components/FloatingBackground';
 import { db, auth } from './firebase';
 
@@ -15,7 +15,7 @@ const LogoSVG = ({ className = "w-10 h-10" }) => (
 
 export default function App() {
   const [imgError, setImgError] = useState(false);
-  const [currentView, setCurrentView] = useState<'home' | 'notice'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'notice' | 'rhea-stay'>('home');
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -51,7 +51,7 @@ export default function App() {
     return () => window.removeEventListener('resize', calculateDistance);
   }, []);
 
-  const handleNavClick = (view: 'home' | 'notice', hash?: string) => {
+  const handleNavClick = (view: 'home' | 'notice' | 'rhea-stay', hash?: string) => {
     setCurrentView(view);
     setIsMobileMenuOpen(false);
     if (hash) {
@@ -65,23 +65,23 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white font-sans selection:bg-purple-500 selection:text-white relative overflow-x-hidden">
-      <FloatingBackground />
+      <FloatingBackground view={currentView} />
       
       <div className="relative z-10">
         {/* Header */}
         <header className="fixed top-0 w-full bg-black/90 backdrop-blur-sm border-b border-white/10 z-50 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
         <div className="flex items-center gap-2 sm:gap-3 cursor-pointer relative" onClick={() => handleNavClick('home')} ref={logoRef}>
-          {!imgError ? (
+          {(!imgError && currentView !== 'rhea-stay') ? (
             <img 
               src="/logo.png" 
-              alt="Rhea Logis Logo" 
+              alt="Rhea Logo" 
               className="h-8 sm:h-10 md:h-12 object-contain bg-white/90 rounded p-1" 
               onError={() => setImgError(true)} 
             />
           ) : (
             <LogoSVG className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white" />
           )}
-          <span className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight">RHEA LOGIS</span>
+          <span className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight">RHEA {currentView === 'rhea-stay' ? 'STAY' : 'LOGIS'}</span>
           
           {/* Flying Product Icon */}
           <div 
@@ -91,7 +91,11 @@ export default function App() {
               '--fly-y': `${flyDistance.y}px` 
             } as React.CSSProperties}
           >
-            <Package className="text-white" size={18} />
+            {currentView === 'rhea-stay' ? (
+              <Home className="text-white" size={18} />
+            ) : (
+              <Package className="text-white" size={18} />
+            )}
           </div>
         </div>
         
@@ -103,6 +107,7 @@ export default function App() {
             <li><button onClick={() => handleNavClick('home', 'business')} className="hover:text-[#8a2be2] transition-colors">Business</button></li>
             <li><button onClick={() => handleNavClick('notice')} className="hover:text-[#8a2be2] transition-colors">Notice</button></li>
             <li><button onClick={() => handleNavClick('home', 'contact')} className="hover:text-[#8a2be2] transition-colors">Contact</button></li>
+            <li><button onClick={() => handleNavClick('rhea-stay')} className="hover:text-[#8a2be2] font-bold transition-colors">RHEA STAY</button></li>
           </ul>
         </nav>
 
@@ -124,6 +129,7 @@ export default function App() {
             <button onClick={() => handleNavClick('home', 'business')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Business</button>
             <button onClick={() => handleNavClick('notice')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Notice</button>
             <button onClick={() => handleNavClick('home', 'contact')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5">Contact</button>
+            <button onClick={() => handleNavClick('rhea-stay')} className="hover:text-[#8a2be2] transition-colors py-2 px-8 rounded-full hover:bg-white/5 font-bold">RHEA STAY</button>
           </nav>
         </div>
       )}
@@ -268,6 +274,7 @@ export default function App() {
                     <div>
                       <div className="text-xs text-[#8a2be2] font-bold uppercase tracking-wider">South Korea</div>
                       <div className="font-bold">KOREA HQ</div>
+                      <div className="text-[10px] opacity-0 mt-0.5 select-none" aria-hidden="true">&nbsp;</div>
                     </div>
                   </div>
                   
@@ -289,6 +296,19 @@ export default function App() {
                       </div>
                     ))}
                   </div>
+
+                  <div className="pt-4 mt-4 border-t border-white/5">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
+                        <ShoppingCart className="text-purple-400 mb-1" size={14} />
+                        <span className="text-[8px] uppercase font-bold text-gray-500">E-COMMERCE</span>
+                      </div>
+                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
+                        <Package className="text-[#8a2be2] mb-1" size={14} />
+                        <span className="text-[8px] uppercase font-bold text-gray-500">Packaging</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Right Side: Japan Branch & Markets */}
@@ -297,6 +317,7 @@ export default function App() {
                     <div className="text-right">
                       <div className="text-xs text-cyan-400 font-bold uppercase tracking-wider">Japan</div>
                       <div className="font-bold">JAPAN BRANCH</div>
+                      <div className="text-[10px] text-gray-500 mt-0.5">Scheduled to open at the end of 2027</div>
                     </div>
                     <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
                       <img src="https://flagcdn.com/w80/jp.png" alt="Japan" className="w-6 h-auto opacity-80" referrerPolicy="no-referrer" />
@@ -323,18 +344,22 @@ export default function App() {
                   </div>
 
                   <div className="pt-4 mt-4 border-t border-white/5">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10">
+                        <ShoppingCart className="text-purple-400 mb-1" size={14} />
+                        <span className="text-[8px] uppercase font-bold text-gray-500">E-COMMERCE</span>
+                      </div>
                       <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10">
                         <Package className="text-[#8a2be2] mb-1" size={14} />
                         <span className="text-[8px] uppercase font-bold text-gray-500">Packaging</span>
                       </div>
                       <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10">
-                        <Box className="text-cyan-400 mb-1" size={14} />
-                        <span className="text-[8px] uppercase font-bold text-gray-500">Warehouse</span>
-                      </div>
-                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10">
                         <Truck className="text-emerald-400 mb-1" size={14} />
                         <span className="text-[8px] uppercase font-bold text-gray-400">Fulfillment</span>
+                      </div>
+                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10">
+                        <Box className="text-cyan-400 mb-1" size={14} />
+                        <span className="text-[8px] uppercase font-bold text-gray-500">Warehouse</span>
                       </div>
                     </div>
                   </div>
@@ -389,6 +414,75 @@ export default function App() {
         </div>
       </section>
       </>
+      ) : currentView === 'rhea-stay' ? (
+        <div className="pt-20">
+          {/* Rhea Stay Hero */}
+          <section className="relative min-h-[70vh] flex flex-col justify-center items-center text-center px-4 overflow-hidden">
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=2080&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-luminosity scale-110 animate-slow-zoom"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-[#0d0d0d]/40 to-[#0d0d0d]"></div>
+            
+            <div className="relative z-10 max-w-4xl mx-auto">
+              <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 px-4 py-1.5 rounded-full text-xs font-bold text-purple-400 mb-8 uppercase tracking-[0.2em] animate-fade-in">
+                <Star size={14} className="fill-purple-400" />
+                Seoul & Tokyo Premium Housing
+              </div>
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-black mb-8 leading-[0.9] tracking-tighter uppercase italic">
+                THE START OF <br />
+                YOUR <span className="text-[#8a2be2] not-italic">URBAN LIFE</span> <br />
+                AS YOURSELF
+              </h1>
+              <div className="text-sm sm:text-base text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
+                레아 스테이는 한국과 일본 도심에서 젊은 세대를 위한 편리한 주택 관리 서비스를 제공합니다.
+              </div>
+            </div>
+          </section>
+
+          {/* Why Rhea Stay */}
+          <section className="py-24 px-6 max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl sm:text-5xl font-black mb-4 tracking-tight uppercase">Why RHEA STAY?</h2>
+              <p className="text-gray-500 font-medium">우리가 추구하는 세 가지 핵심 가치</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-cyan-500 rounded-3xl mx-auto flex items-center justify-center mb-8 shadow-xl shadow-purple-900/40 hover:scale-110 transition-transform">
+                  <MapPin className="text-white" size={36} />
+                </div>
+                <h3 className="text-xl font-bold mb-4">Prime Location</h3>
+                <div className="text-purple-400 text-xs font-bold mb-4 uppercase tracking-widest">(중심지 역세권)</div>
+                <p className="text-gray-400 text-sm leading-relaxed">대학가, 오피스 타운과 인접한 중심부 주택관리 서비스를 제공합니다.</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-cyan-500 rounded-3xl mx-auto flex items-center justify-center mb-8 shadow-xl shadow-purple-900/40 hover:scale-110 transition-transform">
+                  <Shield className="text-white" size={36} />
+                </div>
+                <h3 className="text-xl font-bold mb-4">Safety & Clean</h3>
+                <div className="text-purple-400 text-xs font-bold mb-4 uppercase tracking-widest">(안전과 청결)</div>
+                <p className="text-gray-400 text-sm leading-relaxed">보안 및 시설 관리가 양호한 환경을 제공합니다.</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-cyan-500 rounded-3xl mx-auto flex items-center justify-center mb-8 shadow-xl shadow-purple-900/40 hover:scale-110 transition-transform">
+                  <Heart className="text-white" size={36} />
+                </div>
+                <h3 className="text-xl font-bold mb-4">For single-person households</h3>
+                <div className="text-purple-400 text-xs font-bold mb-4 uppercase tracking-widest">(젊은 감각의 공간)</div>
+                <p className="text-gray-400 text-sm leading-relaxed">1인 가구에게 편리한 관리 서비스를 제공합니다</p>
+              </div>
+            </div>
+          </section>
+
+          <div className="py-24 text-center">
+            <button 
+              onClick={() => handleNavClick('home')}
+              className="text-gray-500 hover:text-white transition-colors flex items-center gap-2 mx-auto uppercase text-xs font-bold tracking-[0.3em]"
+            >
+              <ArrowLeft size={16} /> Back to RHEA LOGIS
+            </button>
+          </div>
+        </div>
       ) : (
         <div className="pt-24 sm:pt-32 pb-20 px-4 sm:px-6 max-w-7xl mx-auto min-h-[60vh] flex flex-col justify-center">
           <div className="max-w-3xl mx-auto w-full">
@@ -402,7 +496,7 @@ export default function App() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold mb-2">회사설립 공지</h3>
-                    <p className="text-gray-400">2026년 4월 30일(본사), 2010년 6월(일본 지사)</p>
+                    <p className="text-gray-400">2026년 4월 30일(레아 로지스), 2010년 6월(레아 스테이)</p>
                   </div>
                 </div>
                 
@@ -412,7 +506,7 @@ export default function App() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold mb-2">영업 개시일</h3>
-                    <p className="text-gray-400">2026년 5월 30일</p>
+                    <p className="text-gray-400">2026년 5월 30일(레아 로지스)</p>
                   </div>
                 </div>
               </div>
@@ -549,19 +643,19 @@ export default function App() {
         />
         <div className="relative z-10 max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
-            {!imgError ? (
+            {(!imgError && currentView !== 'rhea-stay') ? (
               <img 
                 src="/logo.png" 
-                alt="Rhea Logis Logo" 
+                alt="Rhea Logo" 
                 className="h-8 object-contain bg-white/90 rounded p-1" 
                 onError={() => setImgError(true)} 
               />
             ) : (
               <LogoSVG className="w-6 h-6 text-white" />
             )}
-            <span className="font-bold text-white">RHEA LOGIS</span>
+            <span className="font-bold text-white">RHEA {currentView === 'rhea-stay' ? 'STAY' : 'LOGIS'}</span>
           </div>
-          <p>&copy; {new Date().getFullYear()} Rhea Logis Co.,Ltd. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {currentView === 'rhea-stay' ? 'Rhea Stay' : 'Rhea Logis Co.,Ltd.'}. All rights reserved.</p>
           <div className="flex gap-4">
             <button 
               onClick={() => setShowPrivacyModal(true)} 

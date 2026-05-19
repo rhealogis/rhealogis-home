@@ -1,21 +1,39 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Truck, Package, Globe, ShoppingCart, Box, Container, Plane, Ship, Home, Shield, Search, Star, Building, Layout, Heart, Users, MapPin, Key } from 'lucide-react';
 
 const TRADE_WORDS = [
-  { en: 'Logistics', jp: '物流' },
-  { en: 'Trade', jp: '貿易' },
-  { en: 'Global', jp: 'グローバル' },
-  { en: 'Shipping', jp: '船積' },
-  { en: 'Cargo', jp: '貨物' },
-  { en: 'Export', jp: '輸出' },
-  { en: 'Import', jp: '輸入' },
-  { en: 'Supply Chain', jp: 'サプライチェーン' },
-  { en: 'Freight', jp: '運賃' },
-  { en: 'Customs', jp: '通関' },
-  { en: 'Forwarding', jp: 'フォワーディング' },
-  { en: 'Warehouse', jp: '倉庫' },
-  { en: 'Air Freight', jp: '航空貨物' },
-  { en: 'Ocean Freight', jp: '海上貨物' },
+  { en: 'Logistics', jp: '物流', icon: Truck },
+  { en: 'Trade', jp: '貿易', icon: Globe },
+  { en: 'Global', jp: 'グローバル', icon: Globe },
+  { en: 'Shipping', jp: '船積', icon: Ship },
+  { en: 'Cargo', jp: '貨物', icon: Box },
+  { en: 'Export', jp: '輸出', icon: Plane },
+  { en: 'Import', jp: '輸入', icon: Container },
+  { en: 'Supply Chain', jp: 'サプライチェーン', icon: Truck },
+  { en: 'Freight', jp: '運賃', icon: Box },
+  { en: 'Customs', jp: '通関', icon: Package },
+  { en: 'Forwarding', jp: 'フォワーディング', icon: Ship },
+  { en: 'Warehouse', jp: '倉庫', icon: Box },
+  { en: 'Air Freight', jp: '航空貨物', icon: Plane },
+  { en: 'Ocean Freight', jp: '海上貨物', icon: Ship },
+];
+
+const STAY_WORDS = [
+  { en: 'Housing', jp: '住宅', icon: Home },
+  { en: 'Rental', jp: '賃貸', icon: Key },
+  { en: 'Management', jp: '管理', icon: Layout },
+  { en: 'Interior', jp: '内装', icon: Layout },
+  { en: 'Security', jp: '警備', icon: Shield },
+  { en: 'Stay', jp: '滞在', icon: Home },
+  { en: 'Tokyo', jp: '東京', icon: MapPin },
+  { en: 'Seoul', jp: 'ソウル', icon: MapPin },
+  { en: 'Lifestyle', jp: '生活', icon: Heart },
+  { en: 'Smart Home', jp: 'スマート', icon: Star },
+  { en: 'Amenities', jp: '設備', icon: Star },
+  { en: 'Modern', jp: 'モダン', icon: Layout },
+  { en: 'Comfort', jp: '快適', icon: Heart },
+  { en: 'Residence', jp: '住居', icon: Building },
 ];
 
 const COLORS = [
@@ -37,13 +55,17 @@ interface FloatingShape {
   y: number;
   size: number;
   shape: string;
-  word: { en: string; jp: string };
+  word: { en: string; jp: string; icon: any };
   color: { text: string; glow: string; bg: string };
   duration: number;
   delay: number;
 }
 
-export const FloatingBackground: React.FC = () => {
+interface FloatingBackgroundProps {
+  view?: 'home' | 'notice' | 'rhea-stay';
+}
+
+export const FloatingBackground: React.FC<FloatingBackgroundProps> = ({ view = 'home' }) => {
   const [shapes, setShapes] = useState<FloatingShape[]>([]);
 
   useEffect(() => {
@@ -57,6 +79,8 @@ export const FloatingBackground: React.FC = () => {
       const baseSize = isMobile ? 60 : isTablet ? 80 : 90;
       const sizeVar = isMobile ? 30 : isTablet ? 35 : 40;
 
+      const words = view === 'rhea-stay' ? STAY_WORDS : TRADE_WORDS;
+
       const newShapes: FloatingShape[] = [];
       for (let i = 0; i < count; i++) {
         newShapes.push({
@@ -65,7 +89,7 @@ export const FloatingBackground: React.FC = () => {
           y: Math.random() * 100,
           size: Math.random() * sizeVar + baseSize,
           shape: SHAPES[i % SHAPES.length],
-          word: TRADE_WORDS[i % TRADE_WORDS.length],
+          word: words[i % words.length],
           color: COLORS[i % COLORS.length],
           duration: Math.random() * 25 + 25,
           delay: Math.random() * -50,
@@ -82,7 +106,7 @@ export const FloatingBackground: React.FC = () => {
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [view]);
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-[#020202]">
@@ -125,6 +149,9 @@ export const FloatingBackground: React.FC = () => {
               
               {/* Content */}
               <div className="relative z-10 flex flex-col items-center justify-center text-center p-2">
+                {shape.word.icon && (
+                  <shape.word.icon className={`${shape.color.text} opacity-40 mb-1`} size={18} />
+                )}
                 <motion.span 
                   animate={{ scale: [1, 1.15, 1] }}
                   transition={{ duration: 3, repeat: Infinity }}
