@@ -1,43 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, Package, Globe, ShoppingCart, ChevronRight, Mail, Phone, MapPin, Menu, X, Video } from 'lucide-react';
+import { Truck, Package, Globe, ShoppingCart, ChevronRight, Mail, Phone, MapPin, Menu, X, Video, ArrowRight, ArrowLeft, Box, Container, Plane } from 'lucide-react';
 import { FloatingBackground } from './components/FloatingBackground';
-import { db, auth, googleProvider, signInWithPopup, onAuthStateChanged } from './firebase';
-import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  onSnapshot, 
-  query, 
-  orderBy, 
-  serverTimestamp,
-  setDoc,
-  getDoc,
-  getDocFromServer
-} from 'firebase/firestore';
-
-enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write',
-}
-
-interface FirestoreErrorInfo {
-  error: string;
-  operationType: OperationType;
-  path: string | null;
-  authInfo: {
-    userId: string | undefined;
-    email: string | null | undefined;
-    emailVerified: boolean | undefined;
-    isAnonymous: boolean | undefined;
-  }
-}
+import { db, auth } from './firebase';
 
 const LogoSVG = ({ className = "w-10 h-10" }) => (
   <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -52,12 +16,6 @@ const LogoSVG = ({ className = "w-10 h-10" }) => (
 export default function App() {
   const [imgError, setImgError] = useState(false);
   const [currentView, setCurrentView] = useState<'home' | 'notice'>('home');
-  const [notices, setNotices] = useState<any[]>([]);
-  const [isWriting, setIsWriting] = useState(false);
-  const [newNotice, setNewNotice] = useState({ title: '', content: '' });
-  
-  const [selectedNoticeId, setSelectedNoticeId] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -92,106 +50,6 @@ export default function App() {
     window.addEventListener('resize', calculateDistance);
     return () => window.removeEventListener('resize', calculateDistance);
   }, []);
-
-  const handleFirestoreError = (error: any, operationType: OperationType, path: string | null) => {
-    const errInfo: FirestoreErrorInfo = {
-      error: error instanceof Error ? error.message : String(error),
-      authInfo: {
-        userId: auth.currentUser?.uid,
-        email: auth.currentUser?.email,
-        emailVerified: auth.currentUser?.emailVerified,
-        isAnonymous: auth.currentUser?.isAnonymous,
-      },
-      operationType,
-      path
-    };
-    console.error('Firestore Error Details:', JSON.stringify(errInfo, null, 2));
-    return errInfo;
-  };
-
-  useEffect(() => {
-    // Real-time notices
-    const q = query(collection(db, 'notices'));
-    const unsubscribeNotices = onSnapshot(q, (snapshot) => {
-      const noticesData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })).sort((a: any, b: any) => {
-        // Sort by createdAt if available, otherwise by date
-        const timeA = a.createdAt?.toMillis?.() || new Date(a.date).getTime() || 0;
-        const timeB = b.createdAt?.toMillis?.() || new Date(b.date).getTime() || 0;
-        return timeB - timeA;
-      });
-      setNotices(noticesData);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'notices');
-    });
-
-    return () => {
-      unsubscribeNotices();
-    };
-  }, []);
-
-  const handleEditClick = (notice: any) => {
-    setNewNotice({ title: notice.title, content: notice.content });
-    setEditingId(notice.id);
-    setIsWriting(true);
-  };
-
-  const handleWriteSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newNotice.title.trim() || !newNotice.content.trim()) return;
-    
-    try {
-      if (editingId !== null) {
-        const path = `notices/${editingId}`;
-        try {
-          await updateDoc(doc(db, 'notices', editingId), {
-            title: newNotice.title,
-            content: newNotice.content
-          });
-        } catch (error) {
-          const err = handleFirestoreError(error, OperationType.UPDATE, path);
-          throw new Error(err.error);
-        }
-        setEditingId(null);
-      } else {
-        const today = new Date();
-        const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-        
-        const path = 'notices';
-        try {
-          await addDoc(collection(db, 'notices'), {
-            title: newNotice.title,
-            content: newNotice.content,
-            author: '작성자',
-            date: dateStr,
-            createdAt: serverTimestamp()
-          });
-        } catch (error) {
-          const err = handleFirestoreError(error, OperationType.CREATE, path);
-          throw new Error(err.error);
-        }
-      }
-      setNewNotice({ title: '', content: '' });
-      setIsWriting(false);
-      setSelectedNoticeId(null);
-    } catch (error: any) {
-      console.error('Submit error:', error);
-      alert('저장 중 오류가 발생했습니다: ' + error.message);
-    }
-  };
-
-  const handleDeleteNotice = async (id: string) => {
-    if (!window.confirm('정말 삭제하시겠습니까?')) return;
-    try {
-      await deleteDoc(doc(db, 'notices', id));
-      setSelectedNoticeId(null);
-    } catch (error) {
-      console.error('Delete error:', error);
-      alert('삭제 중 오류가 발생했습니다.');
-    }
-  };
 
   const handleNavClick = (view: 'home' | 'notice', hash?: string) => {
     setCurrentView(view);
@@ -283,8 +141,8 @@ export default function App() {
             <span className="text-[#8a2be2]">Connecting the World</span>
           </h1>
           <p className="text-sm sm:text-lg md:text-xl text-gray-400 mb-6 sm:mb-10 max-w-3xl mx-auto px-4">
-            E-commerce 및 Digital Content Marketing<br />
-            전자상거래를 통한 무역, 디지털 컨텐츠 제작 및 마케팅을 제공합니다
+            E-commerce Trade & Smart Fulfillment Solution<br />
+            전자상거래를 통한 글로벌 무역과 상품 보관, 관리 및 포장 물류 서비스를 제공합니다.
           </p>
           <a href="#business" className="inline-flex items-center gap-2 bg-[#8a2be2] hover:bg-purple-600 text-white px-6 py-3 sm:px-8 sm:py-4 rounded-full font-medium transition-all transform hover:scale-105 text-sm sm:text-base">
             Our Business <ChevronRight size={20} />
@@ -335,9 +193,9 @@ export default function App() {
               <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-500/20 transition-colors">
                 <Package className="text-[#8a2be2] animate-slow-spin group-hover:animate-fast-spin" size={28} />
               </div>
-              <h3 className="text-lg font-bold mb-2">All-in-One E-commerce Fulfillment & Logistics Solutions</h3>
+              <h3 className="text-lg font-bold mb-2">Cross-Border Trade packaging and Storage of goods</h3>
               <p className="text-gray-400 text-xs leading-relaxed">
-                구매, 보관, 배송에 대한 전략적 조달 솔루션을 통해 국내외 파트너의 성장을 지원합니다.
+                제품 구입부터 국가 간 이동을 위한 최적의 맞춤형 포장 대행 서비스를 유기적으로 제공합니다.
               </p>
             </div>
           </div>
@@ -347,18 +205,18 @@ export default function App() {
             <div className="h-40 overflow-hidden">
               <img 
                 src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=600&h=400" 
-                alt="Omnichannel Content Production and Marketing" 
+                alt="Cross-Border Trade packaging and Storage of goods" 
                 className="w-full h-full object-cover animate-slow-zoom group-hover:animate-none group-hover:scale-110 transition-transform duration-500"
                 referrerPolicy="no-referrer"
               />
             </div>
             <div className="p-6">
               <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-500/20 transition-colors">
-                <Video className="text-[#8a2be2] animate-slow-spin group-hover:animate-fast-spin" size={28} />
+                <Truck className="text-[#8a2be2] animate-slow-spin group-hover:animate-fast-spin" size={28} />
               </div>
-              <h3 className="text-lg font-bold mb-2">Omnichannel Content Production and Marketing</h3>
+              <h3 className="text-lg font-bold mb-2">All-in-One E-commerce Fulfillment & Logistics Solutions</h3>
               <p className="text-gray-400 text-xs leading-relaxed">
-                창의적인 콘텐츠 제작 및 고객이 머무는 플랫폼 접점의 유기적 연결을 통한 디지털 마케팅 사업을 수행합니다.
+                구매, 보관, 배송에 대한 전략적 조달 솔루션을 통해 국내외 파트너의 성장을 지원합니다.
               </p>
             </div>
           </div>
@@ -384,11 +242,126 @@ export default function App() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-8 landscape:py-24 sm:py-32 px-6 max-w-7xl mx-auto">
+      <section className="py-8 landscape:py-24 sm:py-32 px-6 max-w-7xl mx-auto">
         <div className="max-w-3xl">
           <h2 className="text-2xl sm:text-4xl font-bold mb-4 landscape:mb-10 sm:mb-12">Growing together, your reliable e-commerce partner.</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Global Sales Flow Diagram */}
+          <div className="mb-12 bg-[#1a1a1a] rounded-3xl p-6 sm:p-10 border border-white/5 overflow-hidden relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#8a2be2]/5 to-transparent pointer-events-none"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-8">
+                <Globe className="text-[#8a2be2] animate-pulse" size={24} />
+                <h3 className="text-xl font-bold tracking-tight">GLOBAL SALES FLOW</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative">
+                {/* Vertical Divider */}
+                <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-white/10 -translate-x-1/2"></div>
+                
+                {/* Left Side: Korea HQ */}
+                <div className="space-y-8">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
+                      <img src="https://flagcdn.com/w80/kr.png" alt="South Korea" className="w-6 h-auto opacity-80" referrerPolicy="no-referrer" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-[#8a2be2] font-bold uppercase tracking-wider">South Korea</div>
+                      <div className="font-bold">KOREA HQ</div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {[
+                      { target: 'JP', label: 'Sales to Japan', icon: <ArrowRight className="text-cyan-400" size={16} /> },
+                      { target: 'US', label: 'Sales to USA', icon: <ArrowRight className="text-[#8a2be2]" size={16} /> },
+                      { target: 'EU', label: 'Sales to Europe', icon: <ArrowRight className="text-emerald-400" size={16} /> }
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center gap-4 group/item">
+                        <div className="flex-1 h-px bg-gradient-to-r from-white/20 to-transparent relative">
+                          <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center">
+                            {item.icon}
+                          </div>
+                        </div>
+                        <div className="text-sm font-medium text-gray-400 group-hover/item:text-white transition-colors">
+                          {item.label}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Right Side: Japan Branch & Markets */}
+                <div className="space-y-8">
+                  <div className="flex items-center justify-end gap-4">
+                    <div className="text-right">
+                      <div className="text-xs text-cyan-400 font-bold uppercase tracking-wider">Japan</div>
+                      <div className="font-bold">JAPAN BRANCH</div>
+                    </div>
+                    <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
+                      <img src="https://flagcdn.com/w80/jp.png" alt="Japan" className="w-6 h-auto opacity-80" referrerPolicy="no-referrer" />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {[
+                      { target: 'SK', label: 'Sales to South Korea', icon: <ArrowLeft className="text-[#8a2be2]" size={16} /> },
+                      { target: 'US', label: 'Sales to USA', icon: <ArrowLeft className="text-orange-400" size={16} /> },
+                      { target: 'EU', label: 'Sales to Europe', icon: <ArrowLeft className="text-emerald-400" size={16} /> }
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center gap-4 group/item justify-end text-right">
+                        <div className="text-sm font-medium text-gray-400 group-hover/item:text-white transition-colors">
+                          {item.label}
+                        </div>
+                        <div className="flex-1 h-px bg-gradient-to-l from-white/20 to-transparent relative">
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center">
+                            {item.icon}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-4 mt-4 border-t border-white/5">
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10">
+                        <Package className="text-[#8a2be2] mb-1" size={14} />
+                        <span className="text-[8px] uppercase font-bold text-gray-500">Packaging</span>
+                      </div>
+                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10">
+                        <Box className="text-cyan-400 mb-1" size={14} />
+                        <span className="text-[8px] uppercase font-bold text-gray-500">Warehouse</span>
+                      </div>
+                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10">
+                        <Truck className="text-emerald-400 mb-1" size={14} />
+                        <span className="text-[8px] uppercase font-bold text-gray-400">Fulfillment</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Bottom Decoration */}
+              <div className="mt-12 flex justify-center items-center gap-8 opacity-40">
+                <div className="flex items-center gap-2">
+                  <Box size={14} />
+                  <span className="text-[10px] uppercase tracking-[0.2em]">Procurement</span>
+                </div>
+                <div className="w-1 h-1 rounded-full bg-white/20"></div>
+                <div className="flex items-center gap-2">
+                  <Container size={14} />
+                  <span className="text-[10px] uppercase tracking-[0.2em]">Storage</span>
+                </div>
+                <div className="w-1 h-1 rounded-full bg-white/20"></div>
+                <div className="flex items-center gap-2">
+                  <Plane size={14} />
+                  <span className="text-[10px] uppercase tracking-[0.2em]">Global Trade</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="contact" className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-[#1a1a1a] p-8 rounded-2xl border border-white/5 hover:border-[#8a2be2]/30 transition-colors group">
               <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center mb-6">
                 <MapPin className="text-[#8a2be2] animate-slow-spin group-hover:animate-fast-spin" size={24} />
@@ -417,114 +390,47 @@ export default function App() {
       </section>
       </>
       ) : (
-        <div className="pt-24 sm:pt-32 pb-20 px-4 sm:px-6 max-w-7xl mx-auto min-h-screen">
-          {selectedNoticeId !== null && !isWriting ? (
-            <div className="bg-[#1a1a1a] rounded-2xl p-5 sm:p-8 border border-white/10">
-              {(() => {
-                const notice = notices.find(n => n.id === selectedNoticeId);
-                if (!notice) return null;
-                return (
-                  <>
-                    <div className="border-b border-white/10 pb-6 mb-6">
-                      <h2 className="text-2xl font-bold mb-4">{notice.title}</h2>
-                      <div className="flex gap-4 text-sm text-gray-400">
-                        <span>작성자: {notice.author}</span>
-                        <span>등록일: {notice.date}</span>
-                      </div>
-                    </div>
-                    <div className="text-gray-200 whitespace-pre-wrap min-h-[200px] leading-relaxed">
-                      {notice.content}
-                    </div>
-                    <div className="mt-8 flex justify-between border-t border-white/10 pt-6">
-                      <div className="flex gap-3">
-                        <button onClick={() => setSelectedNoticeId(null)} className="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">목록으로</button>
-                      </div>
-                      <div className="flex gap-3">
-                        <button onClick={() => handleDeleteNotice(notice.id)} className="px-6 py-2 bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors">삭제</button>
-                        <button onClick={() => handleEditClick(notice)} className="px-6 py-2 bg-[#8a2be2] hover:bg-purple-600 rounded-lg transition-colors">수정</button>
-                      </div>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          ) : !isWriting ? (
-            <>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 border-b border-white/10 pb-6 gap-4">
-                <h2 className="text-3xl sm:text-4xl font-bold">공지사항 (Notice)</h2>
-                <div className="flex gap-3 w-full sm:w-auto">
-                  <button onClick={() => { setIsWriting(true); setEditingId(null); setNewNotice({title: '', content: ''}); }} className="w-full sm:w-auto bg-[#8a2be2] hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-colors text-sm font-medium">
-                    글쓰기
-                  </button>
+        <div className="pt-24 sm:pt-32 pb-20 px-4 sm:px-6 max-w-7xl mx-auto min-h-[60vh] flex flex-col justify-center">
+          <div className="max-w-3xl mx-auto w-full">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-10 border-b border-white/10 pb-6">공지사항 (Notice)</h2>
+            <div className="bg-[#1a1a1a] rounded-2xl p-8 sm:p-12 border border-white/10 shadow-xl relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-1 h-full bg-[#8a2be2]"></div>
+              <div className="space-y-8 relative z-10">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-[#8a2be2] font-bold">1</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">회사설립 공지</h3>
+                    <p className="text-gray-400">2026년 4월 30일(본사), 2010년 6월(일본 지사)</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-[#8a2be2] font-bold">2</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">영업 개시일</h3>
+                    <p className="text-gray-400">2026년 5월 30일</p>
+                  </div>
                 </div>
               </div>
-              <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden overflow-x-auto border border-white/5">
-                <table className="w-full text-left border-collapse min-w-[500px] sm:min-w-[600px]">
-                  <thead>
-                    <tr className="bg-black/50 text-gray-400 text-xs border-b border-white/10">
-                      <th className="py-4 px-4 sm:px-6 font-medium w-12 sm:w-16 text-center">No</th>
-                      <th className="py-4 px-4 sm:px-6 font-medium">제목</th>
-                      <th className="py-4 px-4 sm:px-6 font-medium w-24 sm:w-32 text-center">작성자</th>
-                      <th className="py-4 px-4 sm:px-6 font-medium w-24 sm:w-32 text-center">등록일</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {notices.map((notice, index) => (
-                      <tr key={notice.id} onClick={() => setSelectedNoticeId(notice.id)} className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer">
-                        <td className="py-4 px-4 sm:px-6 text-center text-gray-500 text-xs sm:text-sm">{notices.length - index}</td>
-                        <td className="py-4 px-4 sm:px-6 text-gray-200 hover:text-[#8a2be2] transition-colors text-sm sm:text-base">{notice.title}</td>
-                        <td className="py-4 px-4 sm:px-6 text-center text-gray-400 text-xs sm:text-sm">{notice.author}</td>
-                        <td className="py-4 px-4 sm:px-6 text-center text-gray-400 text-xs sm:text-sm">{notice.date}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          ) : (
-            <div className="bg-[#1a1a1a] rounded-2xl p-5 sm:p-8 border border-white/10">
-              <h2 className="text-2xl font-bold mb-6">{editingId !== null ? '공지사항 수정' : '공지사항 작성'}</h2>
-              <form onSubmit={handleWriteSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">제목</label>
-                  <input 
-                    type="text" 
-                    value={newNotice.title}
-                    onChange={(e) => setNewNotice({...newNotice, title: e.target.value})}
-                    className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#8a2be2] transition-colors" 
-                    placeholder="공지사항 제목을 입력하세요"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">내용</label>
-                  <textarea 
-                    rows={10} 
-                    value={newNotice.content}
-                    onChange={(e) => setNewNotice({...newNotice, content: e.target.value})}
-                    className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#8a2be2] transition-colors resize-none" 
-                    placeholder="공지사항 내용을 입력하세요"
-                    required
-                  ></textarea>
-                </div>
-                <div className="flex justify-end gap-4">
-                  <button 
-                    type="button" 
-                    onClick={() => { setIsWriting(false); setEditingId(null); setNewNotice({title: '', content: ''}); }}
-                    className="px-6 py-3 text-gray-400 hover:text-white transition-colors"
-                  >
-                    취소
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="bg-[#8a2be2] hover:bg-purple-600 text-white font-medium px-8 py-3 rounded-lg transition-colors"
-                  >
-                    {editingId !== null ? '수정' : '등록'}
-                  </button>
-                </div>
-              </form>
+              
+              {/* Background Decoration */}
+              <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-[#8a2be2]/5 rounded-full blur-3xl group-hover:bg-[#8a2be2]/10 transition-colors"></div>
             </div>
-          )}
+            
+            <div className="mt-12 text-center">
+              <button 
+                onClick={() => setCurrentView('home')}
+                className="text-gray-500 hover:text-white transition-colors flex items-center gap-2 mx-auto"
+              >
+                <ChevronRight className="rotate-180" size={18} />
+                <span>홈으로 돌아가기</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
