@@ -143,12 +143,11 @@ export default function App() {
         
         <div className="relative z-10 max-w-4xl mx-auto mt-4 landscape:mt-16 sm:mt-20">
           <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-3 sm:mb-6 leading-tight">
-            Beyond Logistics, <br />
-            <span className="text-[#8a2be2]">Connecting the World</span>
+            Selling Beyond Borders <br />
+            <span className="text-[#8a2be2]">Global E-commerce & Product Sales</span>
           </h1>
           <p className="text-sm sm:text-lg md:text-xl text-gray-400 mb-6 sm:mb-10 max-w-3xl mx-auto px-4">
-            E-commerce Trade & Smart Fulfillment Solution<br />
-            전자상거래를 통한 글로벌 무역과 상품 보관, 관리 및 포장 물류 서비스를 제공합니다.
+            전자상거래를 통해 다양한 상품을 전 세계 고객에게 판매합니다.
           </p>
           <a href="#business" className="inline-flex items-center gap-2 bg-[#8a2be2] hover:bg-purple-600 text-white px-6 py-3 sm:px-8 sm:py-4 rounded-full font-medium transition-all transform hover:scale-105 text-sm sm:text-base">
             Our Business <ChevronRight size={20} />
@@ -163,10 +162,10 @@ export default function App() {
           <p className="text-gray-400 text-sm sm:text-base">레아 로지스의 핵심 사업 영역을 소개합니다.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="max-w-md mx-auto">
           {/* Card 1 */}
-          <div className="bg-[#1a1a1a] rounded-2xl border-b-4 border-transparent hover:border-[#8a2be2] hover:-translate-y-2 transition-all duration-300 group overflow-hidden">
-            <div className="h-40 overflow-hidden">
+          <div className="bg-[#1a1a1a] rounded-2xl border-b-4 border-transparent hover:border-[#8a2be2] hover:-translate-y-2 transition-all duration-300 group overflow-hidden shadow-xl shadow-purple-950/20">
+            <div className="h-48 overflow-hidden">
               <img 
                 src="https://picsum.photos/seed/luxury-shopping-mall/600/400" 
                 alt="E-Commerce" 
@@ -181,48 +180,6 @@ export default function App() {
               <h3 className="text-lg font-bold mb-2">E-Commerce</h3>
               <p className="text-gray-400 text-xs leading-relaxed">
                 전자 상거래를 통해 국내 및 해외의 고객에게 세계 각국의 다양하고 우수한 상품을 신속하게 공급합니다. 5가지 AI를 활용한 상품 소싱과 제품에 대한 정확하고 자세한 정보를 제공합니다.
-              </p>
-            </div>
-          </div>
-
-          {/* Card 2 */}
-          <div className="bg-[#1a1a1a] rounded-2xl border-b-4 border-transparent hover:border-[#8a2be2] hover:-translate-y-2 transition-all duration-300 group overflow-hidden">
-            <div className="h-40 overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=600&h=400" 
-                alt="All-in-One E-commerce Fulfillment & Logistics Solutions" 
-                className="w-full h-full object-cover animate-slow-zoom group-hover:animate-none group-hover:scale-110 transition-transform duration-500"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            <div className="p-6">
-              <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-500/20 transition-colors">
-                <Package className="text-[#8a2be2] animate-slow-spin group-hover:animate-fast-spin" size={28} />
-              </div>
-              <h3 className="text-lg font-bold mb-2">Cross-Border Trade packaging and Storage of goods</h3>
-              <p className="text-gray-400 text-xs leading-relaxed">
-                제품 구입부터 국가 간 이동을 위한 최적의 맞춤형 포장 대행 서비스를 유기적으로 제공합니다.
-              </p>
-            </div>
-          </div>
-
-          {/* Card 3 */}
-          <div className="bg-[#1a1a1a] rounded-2xl border-b-4 border-transparent hover:border-[#8a2be2] hover:-translate-y-2 transition-all duration-300 group overflow-hidden">
-            <div className="h-40 overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=600&h=400" 
-                alt="Cross-Border Trade packaging and Storage of goods" 
-                className="w-full h-full object-cover animate-slow-zoom group-hover:animate-none group-hover:scale-110 transition-transform duration-500"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            <div className="p-6">
-              <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-500/20 transition-colors">
-                <Truck className="text-[#8a2be2] animate-slow-spin group-hover:animate-fast-spin" size={28} />
-              </div>
-              <h3 className="text-lg font-bold mb-2">All-in-One E-commerce Fulfillment & Logistics Solutions</h3>
-              <p className="text-gray-400 text-xs leading-relaxed">
-                구매, 보관, 배송에 대한 전략적 조달 솔루션을 통해 국내외 파트너의 성장을 지원합니다.
               </p>
             </div>
           </div>
@@ -250,7 +207,6 @@ export default function App() {
       {/* Contact Section */}
       <section className="py-8 landscape:py-24 sm:py-32 px-6 max-w-7xl mx-auto">
         <div className="max-w-3xl">
-          <h2 className="text-2xl sm:text-4xl font-bold mb-4 landscape:mb-10 sm:mb-12">Growing together, your reliable e-commerce partner.</h2>
           
           {/* Global Sales Flow Diagram */}
           <div className="mb-12 bg-[#1a1a1a] rounded-3xl p-6 sm:p-10 border border-white/5 overflow-hidden relative group">
@@ -296,19 +252,6 @@ export default function App() {
                       </div>
                     ))}
                   </div>
-
-                  <div className="pt-4 mt-4 border-t border-white/5">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
-                        <ShoppingCart className="text-purple-400 mb-1" size={14} />
-                        <span className="text-[8px] uppercase font-bold text-gray-500">E-COMMERCE</span>
-                      </div>
-                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
-                        <Package className="text-[#8a2be2] mb-1" size={14} />
-                        <span className="text-[8px] uppercase font-bold text-gray-500">Packaging</span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
                 
                 {/* Right Side: Japan Branch & Markets */}
@@ -342,49 +285,12 @@ export default function App() {
                       </div>
                     ))}
                   </div>
-
-                  <div className="pt-4 mt-4 border-t border-white/5">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10">
-                        <ShoppingCart className="text-purple-400 mb-1" size={14} />
-                        <span className="text-[8px] uppercase font-bold text-gray-500">E-COMMERCE</span>
-                      </div>
-                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10">
-                        <Package className="text-[#8a2be2] mb-1" size={14} />
-                        <span className="text-[8px] uppercase font-bold text-gray-500">Packaging</span>
-                      </div>
-                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10">
-                        <Truck className="text-emerald-400 mb-1" size={14} />
-                        <span className="text-[8px] uppercase font-bold text-gray-400">Fulfillment</span>
-                      </div>
-                      <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg border border-white/10">
-                        <Box className="text-cyan-400 mb-1" size={14} />
-                        <span className="text-[8px] uppercase font-bold text-gray-500">Warehouse</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Bottom Decoration */}
-              <div className="mt-12 flex justify-center items-center gap-8 opacity-40">
-                <div className="flex items-center gap-2">
-                  <Box size={14} />
-                  <span className="text-[10px] uppercase tracking-[0.2em]">Procurement</span>
-                </div>
-                <div className="w-1 h-1 rounded-full bg-white/20"></div>
-                <div className="flex items-center gap-2">
-                  <Container size={14} />
-                  <span className="text-[10px] uppercase tracking-[0.2em]">Storage</span>
-                </div>
-                <div className="w-1 h-1 rounded-full bg-white/20"></div>
-                <div className="flex items-center gap-2">
-                  <Plane size={14} />
-                  <span className="text-[10px] uppercase tracking-[0.2em]">Global Trade</span>
                 </div>
               </div>
             </div>
           </div>
+          
+
           
           <div id="contact" className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-[#1a1a1a] p-8 rounded-2xl border border-white/5 hover:border-[#8a2be2]/30 transition-colors group">
